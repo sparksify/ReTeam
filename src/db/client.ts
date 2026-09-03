@@ -10,8 +10,10 @@ import * as schema from "./schema";
 export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
 
 let cached: Db | null = null;
+let override: Db | null = null;
 
 export function getDb(): Db {
+  if (override) return override;
   if (cached) return cached;
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -19,6 +21,11 @@ export function getDb(): Db {
   }
   cached = drizzle({ client: neon(url), schema }) as unknown as Db;
   return cached;
+}
+
+/** Test hook: route all application code through an in-process database. */
+export function setDbOverride(db: Db | null): void {
+  override = db;
 }
 
 export { schema };
