@@ -9,8 +9,9 @@ import * as schema from "./schema";
  */
 export type Db = PgDatabase<PgQueryResultHKT, typeof schema>;
 
-let cached: Promise<Db> | null = null;
-let override: Db | null = null;
+// Cached on globalThis so every server bundle (dev mode compiles routes
+// separately) shares one connection — essential for the embedded PGlite mode.
+const globalCache = globalThis as unknown as { __reteamDb?: Promise<Db>; __reteamDbOverride?: Db | null };
 
 /**
  * Returns the application database.
@@ -20,14 +21,16 @@ let override: Db | null = null;
  *                                      first use (local development only)
  */
 export function getDb(): Promise<Db> {
-  if (override) return Promise.resolve(override);
-  if (cached) return cached;
+  if (globalCache.__reteamDbOverride) return Promise.resolve(globalCache.__reteamDbOverride);
+  if (globalCache.__reteamDb) return globalCache.__reteamDb;
   const url = process.env.DATABASE_URL;
   if (!url) {
     return Promise.reject(new Error("DATABASE_URL is not set. See .env.example."));
   }
-  cached = url.startsWith("pglite://") ? createPgliteDb(url.slice("pglite://".length)) : Promise.resolve(createNeonDb(url));
-  return cached;
+  globalCache.__reteamDb = url.startsWith("pglite://")
+    ? createPgliteDb(url.slice("pglite://".length))
+    : Promise.resolve(createNeonDb(url));
+  return globalCache.__reteamDb;
 }
 
 function createNeonDb(url: string): Db {
@@ -52,7 +55,7 @@ async function createPgliteDb(directory: string): Promise<Db> {
 
 /** Test hook: route all application code through an in-process database. */
 export function setDbOverride(db: Db | null): void {
-  override = db;
+  globalCache.__reteamDbOverride = db;
 }
 
 export { schema };

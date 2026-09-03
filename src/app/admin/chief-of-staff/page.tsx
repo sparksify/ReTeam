@@ -2,6 +2,7 @@ import { DocumentIndexPage } from "@/components/admin/document-pages";
 
 export const dynamic = "force-dynamic";
 
-export default function ChiefOfStaffPage() {
-  return <DocumentIndexPage kind="chief_of_staff" />;
+export default async function Page({ searchParams }: { searchParams: Promise<{ published?: string }> }) {
+  const { published } = await searchParams;
+  return <DocumentIndexPage kind="chief_of_staff" published={published} />;
 }

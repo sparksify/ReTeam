@@ -3,6 +3,7 @@ import { getDb } from "@/db/client";
 import { DOC_LABELS, getDocumentVersion, getPublishedDocument, listDocumentVersions, type DocKind } from "@/lib/documents";
 import { Button, Card, PageHeader } from "@/components/ui";
 import { VersionHistory } from "./version-history";
+import { PublishedBanner } from "./published-banner";
 import { VersionEditor } from "./version-editor";
 import { VersionView } from "./version-view";
 import { createDocumentDraftAction, publishDocumentAction, saveDocumentDraftAction } from "@/app/admin/actions";
@@ -15,7 +16,7 @@ const DESCRIPTIONS: Record<DocKind, string> = {
     "Company-wide standards inherited by every employee. Retrieved from the standards resource by every installation.",
 };
 
-export async function DocumentIndexPage({ kind }: { kind: DocKind }) {
+export async function DocumentIndexPage({ kind, published }: { kind: DocKind; published?: string }) {
   const db = await getDb();
   const [versions, current] = await Promise.all([listDocumentVersions(db, kind), getPublishedDocument(db, kind)]);
   const hasDraft = versions.some((v) => v.status === "draft");
@@ -32,6 +33,7 @@ export async function DocumentIndexPage({ kind }: { kind: DocKind }) {
           </form>
         }
       />
+      <PublishedBanner version={published} />
       {hasDraft ? (
         <p className="mb-6 rounded-md border border-brass-500/40 bg-brass-50 px-4 py-3 text-sm text-brass-700">
           A draft version exists. Open it from the history below to continue editing or publish it.

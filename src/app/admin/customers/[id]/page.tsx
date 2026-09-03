@@ -52,7 +52,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         </p>
       ) : null}
 
-      <TokenPanel customerId={customer.id} />
+      <TokenPanel customerId={customer.id} activeLicenses={activeLicenses.map((l) => ({ id: l.id, tokenPrefix: l.tokenPrefix }))} />
 
       <Card className="mt-6" title="Installation tokens">
         {licenses.length === 0 ? (
@@ -83,7 +83,6 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                   <Td>
                     {l.status === "active" ? (
                       <div className="flex justify-end gap-2">
-                        <TokenPanel.Rotate customerId={customer.id} licenseId={l.id} />
                         <form action={revokeLicenseAction}>
                           <input type="hidden" name="licenseId" value={l.id} />
                           <input type="hidden" name="customerId" value={customer.id} />

@@ -1,9 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import { issueLicenseAction, rotateLicenseAction, type TokenState } from "../../actions";
+import { tokenAction, type TokenState } from "../../actions";
 import { CopyButton } from "@/components/copy-button";
 import { Button, Card, FormMessage, Mono } from "@/components/ui";
+
+type ActiveLicense = { id: string; tokenPrefix: string };
 
 function TokenReveal({ state }: { state: TokenState }) {
   if (!state.url) return <FormMessage message={state.error} />;
@@ -29,49 +31,45 @@ function TokenReveal({ state }: { state: TokenState }) {
   );
 }
 
-export function TokenPanel({ customerId }: { customerId: string }) {
-  const [state, action, pending] = useActionState<TokenState, FormData>(issueLicenseAction, {});
+export function TokenPanel({ customerId, activeLicenses }: { customerId: string; activeLicenses: ActiveLicense[] }) {
+  const [state, action, pending] = useActionState<TokenState, FormData>(tokenAction, {});
   return (
     <Card
-      title="Issue installation token"
+      title="Installation token"
       actions={
         <form action={action}>
           <input type="hidden" name="customerId" value={customerId} />
+          <input type="hidden" name="intent" value="issue" />
           <Button type="submit" variant="accent" disabled={pending}>
-            {pending ? "Generating…" : "Generate installation token"}
+            {pending ? "Working…" : "Generate installation token"}
           </Button>
         </form>
       }
     >
-      {state.url || state.error ? (
-        <TokenReveal state={state} />
-      ) : (
-        <p className="text-sm text-ink-600">
-          Generates a cryptographically random private URL for this customer. The raw token is shown once and never stored.
-        </p>
-      )}
+      <div className="space-y-4">
+        {state.url || state.error ? (
+          <TokenReveal state={state} />
+        ) : (
+          <p className="text-sm text-ink-600">
+            Generates a cryptographically random private URL for this customer. The raw token is shown once and never stored.
+          </p>
+        )}
+        {activeLicenses.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2 border-t border-ink-100 pt-4">
+            <span className="text-sm text-ink-600">Rotate (revoke and reissue):</span>
+            {activeLicenses.map((l) => (
+              <form key={l.id} action={action}>
+                <input type="hidden" name="customerId" value={customerId} />
+                <input type="hidden" name="intent" value="rotate" />
+                <input type="hidden" name="licenseId" value={l.id} />
+                <Button type="submit" variant="secondary" className="px-2.5 py-1 text-xs" disabled={pending}>
+                  Rotate <Mono>{l.tokenPrefix}…</Mono>
+                </Button>
+              </form>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </Card>
   );
 }
-
-function RotateButton({ customerId, licenseId }: { customerId: string; licenseId: string }) {
-  const [state, action, pending] = useActionState<TokenState, FormData>(rotateLicenseAction, {});
-  return (
-    <div className="flex flex-col items-end gap-2">
-      <form action={action}>
-        <input type="hidden" name="customerId" value={customerId} />
-        <input type="hidden" name="licenseId" value={licenseId} />
-        <Button type="submit" variant="secondary" className="px-2.5 py-1 text-xs" disabled={pending}>
-          {pending ? "Rotating…" : "Rotate"}
-        </Button>
-      </form>
-      {state.url || state.error ? (
-        <div className="w-[min(36rem,80vw)] text-left">
-          <TokenReveal state={state} />
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-TokenPanel.Rotate = RotateButton;

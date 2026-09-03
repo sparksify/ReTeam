@@ -11,7 +11,6 @@ import { adminPassword, appUrl, isProduction, sessionSecret } from "@/lib/env";
 import { createCustomer, getCustomerByEmail, setCustomerStatus } from "@/lib/customers";
 import {
   createDocumentDraft,
-  getDocumentVersion,
   getPublishedDocument,
   publishDocumentVersion,
   updateDocumentDraft,
@@ -20,7 +19,6 @@ import {
 import {
   createManualDraft,
   getEmployeeById,
-  getManualVersion,
   getPublishedManual,
   publishManualVersion,
   updateEmployeeMetadata,
@@ -101,22 +99,22 @@ function tokenResult(rawToken: string, tokenPrefix: string, success: string): To
   return { success, url, prompt: bootstrapPrompt(url), tokenPrefix };
 }
 
-export async function issueLicenseAction(_prev: TokenState, formData: FormData): Promise<TokenState> {
+/** Issues a new token or rotates an existing one, depending on `intent`. */
+export async function tokenAction(_prev: TokenState, formData: FormData): Promise<TokenState> {
   await requireAdmin();
   const customerId = str(formData.get("customerId"));
-  const { license, rawToken } = await issueLicense(await getDb(), customerId);
+  const intent = str(formData.get("intent"));
+  const db = await getDb();
+  if (intent === "rotate") {
+    const licenseId = str(formData.get("licenseId"));
+    const rotated = await rotateLicense(db, licenseId);
+    if (!rotated) return { error: "License not found." };
+    revalidatePath(`/admin/customers/${customerId}`);
+    return tokenResult(rotated.rawToken, rotated.license.tokenPrefix, "Token rotated. The old link is revoked. Copy the new one now — it will not be shown again.");
+  }
+  const { license, rawToken } = await issueLicense(db, customerId);
   revalidatePath(`/admin/customers/${customerId}`);
   return tokenResult(rawToken, license.tokenPrefix, "New installation token issued. Copy it now — it will not be shown again.");
-}
-
-export async function rotateLicenseAction(_prev: TokenState, formData: FormData): Promise<TokenState> {
-  await requireAdmin();
-  const licenseId = str(formData.get("licenseId"));
-  const customerId = str(formData.get("customerId"));
-  const rotated = await rotateLicense(await getDb(), licenseId);
-  if (!rotated) return { error: "License not found." };
-  revalidatePath(`/admin/customers/${customerId}`);
-  return tokenResult(rotated.rawToken, rotated.license.tokenPrefix, "Token rotated. The old link is revoked. Copy the new one now — it will not be shown again.");
 }
 
 export async function revokeLicenseAction(formData: FormData): Promise<void> {
@@ -204,11 +202,9 @@ export async function publishManualAction(_prev: ActionState, formData: FormData
   }
   const published = await publishManualVersion(db, versionId);
   if (!published) return { error: "Only drafts can be published." };
-  const version = await getManualVersion(db, versionId);
-  revalidatePath(`/admin/employees/${version?.employeeId}`);
-  revalidatePath(`/admin/employees/${version?.employeeId}/versions/${versionId}`);
+  revalidatePath(`/admin/employees/${published.employeeId}`);
   revalidatePath("/admin/employees");
-  return { success: `Version ${published.version} is now live for all installations.` };
+  redirect(`/admin/employees/${published.employeeId}?published=${published.version}`);
 }
 
 /* ------------------------------ documents ------------------------------- */
@@ -254,8 +250,6 @@ export async function publishDocumentAction(_prev: ActionState, formData: FormDa
   }
   const published = await publishDocumentVersion(db, kind, versionId);
   if (!published) return { error: "Only drafts can be published." };
-  await getDocumentVersion(db, kind, versionId);
   revalidatePath(DOC_PATHS[kind]);
-  revalidatePath(`${DOC_PATHS[kind]}/versions/${versionId}`);
-  return { success: `Version ${published.version} is now live for all installations.` };
+  redirect(`${DOC_PATHS[kind]}?published=${published.version}`);
 }

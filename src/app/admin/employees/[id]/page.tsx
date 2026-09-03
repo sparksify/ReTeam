@@ -3,13 +3,20 @@ import { getDb } from "@/db/client";
 import { getEmployeeById, listManualVersions } from "@/lib/employees";
 import { Badge, Button, Card, PageHeader } from "@/components/ui";
 import { VersionHistory } from "@/components/admin/version-history";
+import { PublishedBanner } from "@/components/admin/published-banner";
 import { createManualDraftAction } from "../../actions";
 import { EmployeeForm } from "./employee-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function EmployeePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function EmployeePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ published?: string }>;
+}) {
+  const [{ id }, { published }] = await Promise.all([params, searchParams]);
   const db = await getDb();
   const employee = await getEmployeeById(db, id);
   if (!employee) notFound();
@@ -34,6 +41,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ id: s
           </form>
         }
       />
+      <PublishedBanner version={published} />
       {hasDraft ? (
         <p className="mb-6 rounded-md border border-brass-500/40 bg-brass-50 px-4 py-3 text-sm text-brass-700">
           A draft version exists. Open it from the history below to continue editing or publish it.
