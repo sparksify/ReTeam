@@ -174,8 +174,11 @@ export async function createManualDraftAction(formData: FormData): Promise<void>
   redirect(`/admin/employees/${employeeId}/versions/${draft.id}`);
 }
 
+/** Browsers submit textarea content with CRLF; manuals are stored and served with LF. */
+const normalizeNewlines = (s: string) => s.replace(/\r\n?/g, "\n");
+
 const versionSchema = z.object({
-  content: z.string().min(1, "Content cannot be empty").max(500_000),
+  content: z.string().min(1, "Content cannot be empty").max(500_000).transform(normalizeNewlines),
   changeNotes: z.string().trim().max(2000),
 });
 
@@ -195,7 +198,7 @@ export async function publishManualAction(_prev: ActionState, formData: FormData
   await requireAdmin();
   const versionId = str(formData.get("versionId"));
   const db = await getDb();
-  const content = str(formData.get("content"));
+  const content = normalizeNewlines(str(formData.get("content")));
   if (content) {
     const saved = await updateManualDraft(db, versionId, { content, changeNotes: str(formData.get("changeNotes")) });
     if (!saved) return { error: "Only drafts can be published." };
@@ -243,7 +246,7 @@ export async function publishDocumentAction(_prev: ActionState, formData: FormDa
   const kind = parseKind(str(formData.get("kind")));
   const versionId = str(formData.get("versionId"));
   const db = await getDb();
-  const content = str(formData.get("content"));
+  const content = normalizeNewlines(str(formData.get("content")));
   if (content) {
     const saved = await updateDocumentDraft(db, kind, versionId, { content, changeNotes: str(formData.get("changeNotes")) });
     if (!saved) return { error: "Only drafts can be published." };
