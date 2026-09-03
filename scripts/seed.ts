@@ -4,7 +4,7 @@ import { ensureTestCustomer, seedFactoryContent } from "@/lib/seed";
 
 async function main() {
   requireDatabaseUrl();
-  const db = getDb();
+  const db = await getDb();
   const report = await seedFactoryContent(db);
   console.log("Factory content seeded:");
   console.log(`  employees created:  ${report.employeesCreated.join(", ") || "(none)"}`);

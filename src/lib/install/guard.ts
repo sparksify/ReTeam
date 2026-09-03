@@ -67,7 +67,7 @@ export async function guardInstall(
   const failures = isRateLimited(`fail:${ip}`, FAILED_LOOKUPS_PER_MINUTE);
   if (!failures.allowed) return { ok: false, response: tooMany(failures.retryAfterSeconds) };
 
-  const db = getDb();
+  const db = await getDb();
   const resolved = await resolveInstallToken(db, token);
   if (!resolved) {
     checkRateLimit(`fail:${ip}`, FAILED_LOOKUPS_PER_MINUTE, WINDOW_MS);

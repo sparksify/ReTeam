@@ -29,3 +29,6 @@ coverage
 npm-debug.log*
 *.tsbuildinfo
 .vercel
+
+# local PGlite development database
+.pglite-dev

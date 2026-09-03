@@ -15,7 +15,7 @@ import { issueTestLicense } from "@/lib/seed";
 
 async function main() {
   requireDatabaseUrl();
-  const db = getDb();
+  const db = await getDb();
   const args = process.argv.slice(2);
   const emailIdx = args.indexOf("--email");
 

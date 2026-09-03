@@ -20,7 +20,7 @@ function baseUrlFromHeaders(h: Headers): string {
 
 export default async function InstallPage({ params }: Props) {
   const { token } = await params;
-  const db = getDb();
+  const db = await getDb();
   const resolved = await resolveInstallToken(db, token);
 
   if (!resolved) {

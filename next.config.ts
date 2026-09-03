@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Loaded only for pglite:// development databases; never bundled.
+  serverExternalPackages: ["@electric-sql/pglite"],
   async headers() {
     return [
       {

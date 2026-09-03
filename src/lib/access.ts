@@ -34,3 +34,18 @@ export async function listRecentAccess(db: Db, licenseId: string, limit = 25): P
     .orderBy(desc(accessLogs.createdAt))
     .limit(limit);
 }
+
+export type CustomerAccessRow = AccessLog & { tokenPrefix: string };
+
+/** Recent access across all of a customer's licenses. */
+export async function listRecentAccessForCustomer(db: Db, customerId: string, limit = 30): Promise<CustomerAccessRow[]> {
+  const { licenses } = await import("@/db/schema");
+  const rows = await db
+    .select({ log: accessLogs, tokenPrefix: licenses.tokenPrefix })
+    .from(accessLogs)
+    .innerJoin(licenses, eq(licenses.id, accessLogs.licenseId))
+    .where(eq(licenses.customerId, customerId))
+    .orderBy(desc(accessLogs.createdAt))
+    .limit(limit);
+  return rows.map((r) => ({ ...r.log, tokenPrefix: r.tokenPrefix }));
+}
