@@ -1,3 +1,5 @@
+import { normalizeBaseUrl } from "./base-url";
+
 function required(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Missing required environment variable ${name}. See .env.example.`);
@@ -5,7 +7,7 @@ function required(name: string): string {
 }
 
 export function appUrl(): string {
-  return (process.env.APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  return normalizeBaseUrl(process.env.APP_URL) ?? "http://localhost:3000";
 }
 
 export function adminPassword(): string {

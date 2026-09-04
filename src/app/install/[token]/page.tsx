@@ -4,6 +4,7 @@ import { recordAccess } from "@/lib/access";
 import { bootstrapPrompt } from "@/lib/bootstrap-prompt";
 import { resolveInstallToken } from "@/lib/licenses";
 import { installUrl, resourceUrls } from "@/lib/install/urls";
+import { normalizeBaseUrl } from "@/lib/base-url";
 import { CopyButton } from "@/components/copy-button";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ token: string }> };
 
 function baseUrlFromHeaders(h: Headers): string {
-  const configured = process.env.APP_URL?.replace(/\/+$/, "");
+  const configured = normalizeBaseUrl(process.env.APP_URL);
   if (configured) return configured;
   const proto = h.get("x-forwarded-proto") ?? "http";
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
