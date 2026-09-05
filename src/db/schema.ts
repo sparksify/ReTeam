@@ -90,6 +90,14 @@ export const employees = pgTable("employees", {
   inputSummary: text("input_summary").notNull().default(""),
   /** Short summary of what this employee produces. */
   outputSummary: text("output_summary").notNull().default(""),
+  /** Persona the Chief of Staff gives this employee when creating its bot (e.g. "Tabitha"). */
+  personaName: text("persona_name").notNull().default(""),
+  /** Personality and working style, used in the bot's introduction. */
+  personaDescription: text("persona_description").notNull().default(""),
+  /** Visual description for generating the bot's avatar image. */
+  avatarPrompt: text("avatar_prompt").notNull().default(""),
+  /** Optional hosted avatar image, used instead of generating one when set. */
+  avatarUrl: text("avatar_url"),
   sortOrder: integer("sort_order").notNull().default(100),
   ...timestamps,
 }, (t) => [

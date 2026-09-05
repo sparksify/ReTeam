@@ -38,5 +38,5 @@ export async function GET(request: Request, { params }: Params) {
     );
   }
 
-  return json(buildEmployeeManual({ resources, entry: { employee, manual } }));
+  return json(buildEmployeeManual({ resources, entry: { employee, manual }, realtorName: customer.name }));
 }

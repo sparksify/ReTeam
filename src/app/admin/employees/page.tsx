@@ -22,6 +22,7 @@ export default async function EmployeesPage() {
             <thead>
               <tr>
                 <Th>Employee</Th>
+                <Th>Persona</Th>
                 <Th>Slug</Th>
                 <Th>Category</Th>
                 <Th>Type</Th>
@@ -36,6 +37,7 @@ export default async function EmployeesPage() {
                     <Link href={`/admin/employees/${e.id}`} className="font-medium text-ink-950 hover:underline">{e.name}</Link>
                     <p className="mt-0.5 max-w-md text-xs text-ink-500">{e.description}</p>
                   </Td>
+                  <Td>{e.personaName || <span className="text-ink-400">—</span>}</Td>
                   <Td className="font-mono text-xs">{e.slug}</Td>
                   <Td>{e.category}</Td>
                   <Td><Badge>{e.employeeType}</Badge></Td>

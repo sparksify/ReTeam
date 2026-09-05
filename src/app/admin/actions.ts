@@ -135,6 +135,15 @@ const employeeSchema = z.object({
   triggerExamples: z.array(z.string().trim().min(1)).max(20),
   inputSummary: z.string().trim().max(2000),
   outputSummary: z.string().trim().max(4000),
+  personaName: z.string().trim().max(100),
+  personaDescription: z.string().trim().max(2000),
+  avatarPrompt: z.string().trim().max(2000),
+  avatarUrl: z
+    .string()
+    .trim()
+    .max(2000)
+    .transform((v) => v || null)
+    .refine((v) => v === null || /^https?:\/\//i.test(v), "Avatar URL must start with http:// or https://"),
   sortOrder: z.coerce.number().int().min(0).max(10_000),
 });
 
@@ -149,6 +158,10 @@ export async function updateEmployeeAction(_prev: ActionState, formData: FormDat
     triggerExamples: str(formData.get("triggerExamples")).split("\n").map((s) => s.trim()).filter(Boolean),
     inputSummary: str(formData.get("inputSummary")),
     outputSummary: str(formData.get("outputSummary")),
+    personaName: str(formData.get("personaName")),
+    personaDescription: str(formData.get("personaDescription")),
+    avatarPrompt: str(formData.get("avatarPrompt")),
+    avatarUrl: str(formData.get("avatarUrl")),
     sortOrder: str(formData.get("sortOrder")) || "100",
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
