@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { employees } from "@/db/schema";
-import { CHIEF_OF_STAFF_MANUAL_V1 } from "@/content/chief-of-staff-manual";
+import { CHIEF_OF_STAFF_MANUAL } from "@/content/chief-of-staff-manual";
 import { FACTORY_EMPLOYEES } from "@/content/factory-employees";
 import { GLOBAL_STANDARDS_V1 } from "@/content/global-standards";
 import { createCustomer, getCustomerByEmail } from "./customers";
@@ -43,6 +43,9 @@ export async function seedFactoryContent(db: Db): Promise<SeedReport> {
       triggerExamples: seed.triggerExamples,
       inputSummary: seed.inputSummary,
       outputSummary: seed.outputSummary,
+      personaName: seed.personaName,
+      personaDescription: seed.personaDescription,
+      avatarPrompt: seed.avatarPrompt,
       sortOrder: seed.sortOrder,
     };
     let employee = await getFactoryEmployeeBySlug(db, seed.slug);
@@ -70,7 +73,7 @@ export async function seedFactoryContent(db: Db): Promise<SeedReport> {
 
   if ((await listDocumentVersions(db, "chief_of_staff")).length === 0) {
     const draft = await createDocumentDraft(db, "chief_of_staff", {
-      content: CHIEF_OF_STAFF_MANUAL_V1,
+      content: CHIEF_OF_STAFF_MANUAL,
       changeNotes: "Initial V1 operating framework.",
     });
     await publishDocumentVersion(db, "chief_of_staff", draft.id);

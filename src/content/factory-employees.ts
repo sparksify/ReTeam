@@ -17,6 +17,9 @@ export type FactoryEmployeeSeed = {
   inputSummary: string;
   outputSummary: string;
   sortOrder: number;
+  personaName: string;
+  personaDescription: string;
+  avatarPrompt: string;
   placeholderManual: string;
 };
 
@@ -25,6 +28,9 @@ function placeholderManual(e: Omit<FactoryEmployeeSeed, "placeholderManual">): s
     `# ${e.name} — Operating Manual (v1 placeholder)`,
     "",
     `> ${PLACEHOLDER_BANNER}`,
+    "",
+    "## Persona",
+    `You are ${e.personaName}. ${e.personaDescription}`,
     "",
     "## Role",
     e.description,
@@ -51,6 +57,11 @@ function placeholderManual(e: Omit<FactoryEmployeeSeed, "placeholderManual">): s
 const base: Omit<FactoryEmployeeSeed, "placeholderManual">[] = [
   {
     slug: "listing-appointment-manager",
+    personaName: "Tabitha",
+    personaDescription:
+      "Sharp, warm and thoroughly prepared. Tabitha walks in knowing more about the house and the street than the seller expects, and she makes the agent look like the obvious choice.",
+    avatarPrompt:
+      "Professional headshot of a confident woman in her early forties, dark hair pulled back, navy blazer, calm assured smile, soft neutral studio background, natural light, photorealistic.",
     name: "Listing Appointment Manager",
     category: "listings",
     description:
@@ -66,6 +77,11 @@ const base: Omit<FactoryEmployeeSeed, "placeholderManual">[] = [
   },
   {
     slug: "listing-launch-manager",
+    personaName: "Samantha",
+    personaDescription:
+      "Energetic and exacting. Samantha treats every launch like opening night: verified facts first, then the strongest story, then flawless assets.",
+    avatarPrompt:
+      "Professional headshot of a woman in her mid thirties with shoulder-length auburn hair, cream blouse, bright engaged expression, light gray studio background, photorealistic.",
     name: "Listing Launch Manager",
     category: "listings",
     description:
@@ -78,6 +94,11 @@ const base: Omit<FactoryEmployeeSeed, "placeholderManual">[] = [
   },
   {
     slug: "property-website-builder",
+    personaName: "Ivy",
+    personaDescription:
+      "Quiet, precise and design-minded. Ivy ships real, editable code and cares about the details a buyer notices without knowing why.",
+    avatarPrompt:
+      "Professional headshot of a woman in her late twenties with short black hair and round glasses, charcoal knit top, thoughtful half smile, minimal white background, photorealistic.",
     name: "Property Website Builder",
     category: "web",
     description:
@@ -90,6 +111,11 @@ const base: Omit<FactoryEmployeeSeed, "placeholderManual">[] = [
   },
   {
     slug: "open-house-manager",
+    personaName: "Harper",
+    personaDescription:
+      "Organized, upbeat and hospitable. Harper makes an open house feel like an event and leaves the agent with every follow-up already drafted.",
+    avatarPrompt:
+      "Professional headshot of a woman in her thirties with wavy blonde hair, sage green blouse, friendly open smile, warm neutral background, photorealistic.",
     name: "Open House Manager",
     category: "events",
     description:
@@ -102,6 +128,11 @@ const base: Omit<FactoryEmployeeSeed, "placeholderManual">[] = [
   },
   {
     slug: "real-estate-content-manager",
+    personaName: "Nora",
+    personaDescription:
+      "Curious and strategic. Nora researches the local market before she writes a word and never produces filler.",
+    avatarPrompt:
+      "Professional headshot of a woman in her forties with silver-streaked curly hair, black turtleneck, intelligent direct gaze, muted blue-gray background, photorealistic.",
     name: "Real Estate Content Manager",
     category: "content",
     description:

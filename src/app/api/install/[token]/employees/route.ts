@@ -13,5 +13,5 @@ export async function GET(request: Request, { params }: Params) {
   const { db, customer, resources } = guard.ctx;
 
   const entries = await loadCatalog(db, customer.id);
-  return json(buildEmployeeCatalog({ resources, entries }));
+  return json(buildEmployeeCatalog({ resources, entries, realtorName: customer.name }));
 }

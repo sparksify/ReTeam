@@ -34,6 +34,26 @@ export function EmployeeForm({ employee }: { employee: Employee }) {
         <Label htmlFor="outputSummary">Output summary</Label>
         <Textarea id="outputSummary" name="outputSummary" defaultValue={employee.outputSummary} rows={3} />
       </div>
+      <div className="sm:col-span-2 border-t border-ink-100 pt-4">
+        <p className="text-sm font-semibold text-ink-900">Persona</p>
+        <p className="mt-1 text-xs text-ink-500">The Chief of Staff creates a dedicated bot for this employee using this name and avatar.</p>
+      </div>
+      <div>
+        <Label htmlFor="personaName">Persona name</Label>
+        <Input id="personaName" name="personaName" defaultValue={employee.personaName} placeholder="Tabitha" />
+      </div>
+      <div>
+        <Label htmlFor="avatarUrl" hint="optional, overrides generated avatar">Avatar image URL</Label>
+        <Input id="avatarUrl" name="avatarUrl" defaultValue={employee.avatarUrl ?? ""} placeholder="https://…/tabitha.png" />
+      </div>
+      <div className="sm:col-span-2">
+        <Label htmlFor="personaDescription">Personality & working style</Label>
+        <Textarea id="personaDescription" name="personaDescription" defaultValue={employee.personaDescription} rows={2} />
+      </div>
+      <div className="sm:col-span-2">
+        <Label htmlFor="avatarPrompt" hint="used to generate the bot's portrait">Avatar description</Label>
+        <Textarea id="avatarPrompt" name="avatarPrompt" defaultValue={employee.avatarPrompt} rows={2} />
+      </div>
       <div>
         <Label htmlFor="status">Status</Label>
         <Select id="status" name="status" defaultValue={employee.status}>

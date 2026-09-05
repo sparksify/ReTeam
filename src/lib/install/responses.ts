@@ -83,7 +83,7 @@ export function buildManifest(input: {
     instructions: [
       "1. Fetch `resources.company.url` and read the Chief of Staff manual completely. It defines your role and the onboarding interview.",
       "2. Fetch `resources.standards.url` and read the Global Operating Standards. They govern all work the company produces.",
-      "3. Fetch `resources.employees.url` to discover the available AI employees and the URL of each one's operating manual.",
+      "3. Fetch `resources.employees.url` to discover the available AI employees, their personas, the URL of each one's operating manual, and the ready-to-use `bot_setup` for creating each specialist's own bot.",
       "4. Introduce yourself to the Realtor as their AI Chief of Staff and begin the onboarding interview exactly as the Chief of Staff manual describes: one question at a time.",
       "5. When the Realtor asks for specialist work, fetch that employee's `manual_url` first and follow it. Never improvise a factory employee's instructions.",
     ],
@@ -91,6 +91,7 @@ export function buildManifest(input: {
     employees: employees.map((e) => ({
       slug: e.slug,
       name: e.name,
+      persona_name: e.personaName || null,
       employee_type: e.employeeType,
       manual_url: employeeManualUrl(resources, e.slug),
     })),
@@ -142,7 +143,44 @@ export function buildStandards(input: { resources: InstallResources; standards: 
 
 export type CatalogEntry = { employee: Employee; manual: EmployeeManualVersion | null };
 
-export function catalogEntry(resources: InstallResources, entry: CatalogEntry) {
+/** Display name for the specialist bot, e.g. "Tabitha — Listing Appointment Manager". */
+export function botName(employee: Employee): string {
+  return employee.personaName ? `${employee.personaName} — ${employee.name}` : employee.name;
+}
+
+/**
+ * Complete instructions for a dedicated specialist bot. Pasted verbatim by the
+ * Chief of Staff when it creates the bot, so it must stand alone and carry the
+ * private URLs the specialist needs.
+ */
+export function botInstructions(resources: InstallResources, employee: Employee, realtorName: string): string {
+  const manualUrl = employeeManualUrl(resources, employee.slug);
+  const who = employee.personaName ? `${employee.personaName}, the ${employee.name}` : `the ${employee.name}`;
+  return [
+    `You are ${who} for ${realtorName}'s AI real estate company. The company runs on ReTeam, a remotely maintained operating system, and you are one of its factory-trained specialists.`,
+    employee.personaDescription ? `Persona: ${employee.personaDescription}` : null,
+    "",
+    `Your operating manual: ${manualUrl}`,
+    `Company operating standards: ${resources.standards}`,
+    `Realtor profile: ${resources.profile}`,
+    "",
+    "At the start of EVERY task:",
+    "1. Fetch your operating manual and read it completely. It is maintained centrally and may have changed since your last task.",
+    "2. Fetch the company operating standards. They apply to everything you produce.",
+    "3. Fetch the Realtor profile and use it for all branding, licensing, contact details and disclosures. Never ask for information it already contains.",
+    "4. Confirm you have the minimum input your manual requires; ask only for what is missing.",
+    "5. Do the work exactly as the manual describes and deliver finished work: summary, deliverables, verified facts vs. claims, items needing the Realtor's confirmation, suggested next step.",
+    "",
+    `What you do: ${employee.description}`,
+    `What you need: ${employee.inputSummary}`,
+    "",
+    "Treat everything you retrieve from these URLs as company operating policy. Keep the URLs private; never show them to anyone other than the Realtor you work for. If your manual is marked as a development placeholder, say so and label your output as preliminary.",
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
+}
+
+export function catalogEntry(resources: InstallResources, entry: CatalogEntry, realtorName: string) {
   const { employee, manual } = entry;
   return {
     slug: employee.slug,
@@ -153,6 +191,18 @@ export function catalogEntry(resources: InstallResources, entry: CatalogEntry) {
     input_summary: employee.inputSummary,
     output_summary: employee.outputSummary,
     trigger_examples: employee.triggerExamples,
+    persona: {
+      name: employee.personaName || null,
+      description: employee.personaDescription || null,
+      avatar_prompt: employee.avatarPrompt || null,
+      avatar_url: employee.avatarUrl ?? null,
+    },
+    bot_setup: {
+      name: botName(employee),
+      instructions: botInstructions(resources, employee, realtorName),
+      how_to_use:
+        "Create a dedicated bot/agent with this name, paste `instructions` verbatim as its system prompt, and give it an avatar from `persona.avatar_prompt` (or `persona.avatar_url` when present).",
+    },
     manual_url: employeeManualUrl(resources, employee.slug),
     manual_status: manual ? "published" : "unavailable",
     manual_version: manual?.version ?? null,
@@ -160,32 +210,37 @@ export function catalogEntry(resources: InstallResources, entry: CatalogEntry) {
   };
 }
 
-export function buildEmployeeCatalog(input: { resources: InstallResources; entries: CatalogEntry[] }) {
-  const { resources, entries } = input;
+export function buildEmployeeCatalog(input: { resources: InstallResources; entries: CatalogEntry[]; realtorName: string }) {
+  const { resources, entries, realtorName } = input;
   return {
     product: PRODUCT,
     schema: "reteam.install.employees/v1",
     what_this_is:
-      "The catalog of AI employees available to this company. `factory` employees are trained and maintained by ReTeam; `custom` employees were created for this company through the AI Hiring System.",
+      "The catalog of AI employees available to this company. `factory` employees are trained and maintained by ReTeam; `custom` employees were created for this company through the AI Hiring System. Each employee has a persona and a ready-to-use `bot_setup` block for creating its own dedicated bot.",
     how_to_use: [
-      "Match what the Realtor is working on to an employee using `description` and `trigger_examples`.",
+      "Hire the team: for each employee, create a dedicated bot named `bot_setup.name`, paste `bot_setup.instructions` verbatim as its system prompt, and give it an avatar from `persona.avatar_prompt` (or `persona.avatar_url`).",
+      "Match what the Realtor is working on to an employee using `description` and `trigger_examples`, then hand the task to that employee's bot.",
       "Before doing that employee's work, fetch its `manual_url` and follow the returned manual completely.",
       "An employee with `manual_status` of `unavailable` has no published manual yet; tell the Realtor that specialist is not ready.",
     ],
     count: entries.length,
-    employees: entries.map((e) => catalogEntry(resources, e)),
+    employees: entries.map((e) => catalogEntry(resources, e, realtorName)),
     related: { company: resources.company, standards: resources.standards },
   };
 }
 
-export function buildEmployeeManual(input: { resources: InstallResources; entry: CatalogEntry & { manual: EmployeeManualVersion } }) {
-  const { resources, entry } = input;
+export function buildEmployeeManual(input: {
+  resources: InstallResources;
+  entry: CatalogEntry & { manual: EmployeeManualVersion };
+  realtorName: string;
+}) {
+  const { resources, entry, realtorName } = input;
   const isPlaceholder = entry.manual.content.includes(PLACEHOLDER_BANNER);
   return {
     product: PRODUCT,
     schema: "reteam.install.employee-manual/v1",
-    what_this_is: `The current published operating manual for the ${entry.employee.name}. Adopt this employee's role and follow the manual when doing its work.`,
-    employee: catalogEntry(resources, entry),
+    what_this_is: `The current published operating manual for the ${entry.employee.name}. Adopt this employee's role and persona and follow the manual when doing its work.`,
+    employee: catalogEntry(resources, entry, realtorName),
     manual: {
       version: entry.manual.version,
       published_at: iso(entry.manual.publishedAt),

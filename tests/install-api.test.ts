@@ -52,6 +52,7 @@ describe("installation manifest", () => {
     expect(body.versions).toEqual({ company_manual: 1, standards: 1, employee_count: 5 });
     expect(body.installation.registered_to.name).toBe("Jordan Realtor");
     expect(body.employees.map((e: { slug: string }) => e.slug)).toContain("listing-appointment-manager");
+    expect(body.employees[0].persona_name).toBe("Tabitha");
     // Raw token never appears outside the URLs themselves and the body never includes hashes.
     expect(JSON.stringify(body)).not.toMatch(/[0-9a-f]{64}/);
   });
@@ -107,6 +108,8 @@ describe("company, standards, updates", () => {
     expect(body.content_format).toBe("markdown");
     expect(body.content).toContain("one question at a time");
     expect(body.content).toContain("Your company is ready");
+    expect(body.content).toContain("Hire the team");
+    expect(body.content).toContain("bot_setup");
     expect(body.related.employees).toBe(`${base(token)}/employees`);
   });
 
@@ -145,6 +148,14 @@ describe("employee catalog and manuals", () => {
     ]);
     const first = body.employees[0];
     expect(first.employee_type).toBe("factory");
+    expect(first.persona.name).toBe("Tabitha");
+    expect(first.persona.avatar_prompt).toMatch(/headshot/i);
+    expect(first.bot_setup.name).toBe("Tabitha — Listing Appointment Manager");
+    expect(first.bot_setup.instructions).toContain("Jordan Realtor");
+    expect(first.bot_setup.instructions).toContain(`${base(token)}/employees/listing-appointment-manager`);
+    expect(first.bot_setup.instructions).toContain(`${base(token)}/standards`);
+    expect(first.bot_setup.instructions).toContain(`${base(token)}/profile`);
+    expect(body.how_to_use.join(" ")).toMatch(/dedicated bot/);
     expect(first.manual_url).toBe(`${base(token)}/employees/listing-appointment-manager`);
     expect(first.manual_status).toBe("published");
     expect(first.trigger_examples.length).toBeGreaterThan(0);

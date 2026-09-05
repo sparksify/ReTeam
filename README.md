@@ -221,7 +221,7 @@ Every response is self-describing: `what_this_is`, `instructions` / `how_to_use`
    Read the operating instructions there completely, follow them, and begin my onboarding.
    ```
 
-4. Expected behavior: it fetches the manifest, then the company manual, standards and employee catalog; introduces itself as the Chief of Staff; asks onboarding questions one at a time; after onboarding says the company is ready and offers listing appointment / new listing / open house / content / property website / something else; when asked about a listing appointment it fetches the Listing Appointment Manager manual before working.
+4. Expected behavior: it fetches the manifest, then the company manual, standards and employee catalog; introduces itself by name (Susie unless you named it); asks onboarding questions one at a time; saves the profile; creates one bot per employee (Tabitha, Samantha, Ivy, Harper, Nora) with generated avatars if the environment allows; says the company is ready and offers listing appointment / new listing / open house / content / property website / something else; routes each task to the matching specialist bot, which fetches its manual before working.
 5. Watch **Customers → (customer) → Recent access** in admin to confirm each resource was fetched.
 
 ---
@@ -290,6 +290,8 @@ Any Node.js host works; Vercel is the simplest.
 | `global_standard_versions` | version, content, status, change_notes, published_at |
 | `customer_profiles` | customer_id (unique), profile_json (jsonb) |
 | `access_logs` | license_id, resource_type, resource_identifier, ip_hash, user_agent |
+
+**Personas and specialist bots:** every employee carries a persona (`persona_name`, `persona_description`, `avatar_prompt`, optional `avatar_url`). The catalog and manual responses include a `bot_setup` block with a bot name and complete, ready-to-paste instructions that embed that employee's private manual, standards and profile URLs. The Chief of Staff manual instructs the agent to create one dedicated bot per employee (name, instructions, generated avatar) during onboarding, then route work to those bots. Personas are edited on the employee page in admin.
 
 **Custom employees (future AI Hiring System):** live in the same `employees` table with `employee_type = 'custom'` and `owner_customer_id` set. They are only visible to their owner, use the same manual versioning, and slugs are unique per owner. No builder UI exists in V1 by design.
 

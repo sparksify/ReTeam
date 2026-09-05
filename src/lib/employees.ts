@@ -76,6 +76,10 @@ export type EmployeeMetadataInput = {
   triggerExamples: string[];
   inputSummary: string;
   outputSummary: string;
+  personaName: string;
+  personaDescription: string;
+  avatarPrompt: string;
+  avatarUrl: string | null;
   sortOrder: number;
 };
 
